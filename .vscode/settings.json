@@ -1,6 +1,10 @@
 {
     "deno.enable": true,
     "files.associations": {
-        "sha3.h": "c"
+        "sha3.h": "c",
+        "cstring": "c",
+        "cstdint": "cpp",
+        "account.h": "c",
+        "ethc-common.h": "c"
     }
 }
