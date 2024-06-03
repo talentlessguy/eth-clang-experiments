@@ -18,11 +18,13 @@ clang src/jsonrpc.c -lcurl -lcjson
 
 ### ECSDA
 
-Signs a "Hello World" message using an Ethereum and outputs an Ethereum address.
+Requirements: `libethc`
+
+Loads an Ethereum account from env, signs a "Hello World" message and outputs an Ethereum address.
 
 ```
-$ clang src/sign.c -lcurl -lsecp256k
+$ clang src/sign.c -lethc -L /usr/local/lib -rpath /usr/local/lib
 
-Signature: b81efa2da5...10dfbf8b97d40027a5872400
-Ethereum Address: ce9667fa..051b7f3b68643c6
+Signature: 0xb81efa243127sda5...00
+Ethereum Address: 0xce9667fa..43c6
 ```
