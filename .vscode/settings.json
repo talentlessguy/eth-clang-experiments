@@ -1,5 +1,6 @@
 {
+    "deno.enable": true,
     "files.associations": {
-        "secp256k1_recovery.h": "c"
+        "sha3.h": "c"
     }
 }

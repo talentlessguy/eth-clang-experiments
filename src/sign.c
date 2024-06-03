@@ -3,35 +3,43 @@
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 #include <stdlib.h>
-#include <sodium/crypto_hash_sha256.h>
+#include <sodium.h>
+#include "keccak256.h"
 
-// Function to print a byte array in hex format
 void print_hex(const unsigned char *data, size_t len) {
     printf("0x");
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; ++i) {
         printf("%02x", data[i]);
     }
-    printf("\n");
 }
 
-// Function to compute Ethereum address from public key
-void pubkey_to_ethereum_address(const unsigned char *pubkey, size_t pubkey_len) {
-    unsigned char hash[crypto_hash_sha256_BYTES];
-    unsigned char address[20];
+void keccak256(const uint8_t *data, uint16_t length, uint8_t *result) {
+    SHA3_CTX context;
+    keccak_init(&context);
+    keccak_update(&context, (const unsigned char*)data, (size_t)length);
+    keccak_final(&context, (unsigned char*)result);
 
-    // Hash the public key using SHA-256
-    crypto_hash_sha256(hash, pubkey, pubkey_len);
-
-    // Apply Keccak-256 hash to the result
-    // Keccak-256 is essentially SHA3 with different padding
-    // Implement Keccak-256 hash function here
-
-    // Take the last 20 bytes of the Keccak-256 hash as the address
-    memcpy(address, hash + 12, 20);
-
-    // Print the Ethereum address without "0x" prefix
-    print_hex(address, 20);
+    // Clear out the contents of what we hashed (in case it was secret)
+    memset((char*)&context, 0, sizeof(SHA3_CTX));
 }
+
+void pubkey_to_eth_addr(const uint8_t *pubkey, uint16_t pubkey_len, char *address) {
+    uint8_t hash[32];
+    
+    // Hash the public key using keccak256
+    keccak256(pubkey, pubkey_len, hash);
+    
+    // Convert the hash to a hexadecimal string
+    char hex_hash[65]; // 32 bytes * 2 characters per byte + 1 for null terminator
+    for (int i = 0; i < 32; i++) {
+        sprintf(hex_hash + i * 2, "%02x", hash[i]);
+    }
+    
+    // Take the substring starting from the 27th character
+    memcpy(address, hex_hash + 26, 40); // 40 characters for the Ethereum address
+    address[40] = '\0'; // Null-terminate the string
+}
+
 
 
 int main() {
@@ -76,6 +84,7 @@ int main() {
         return 1;
     }
 
+    printf("\nPubkey: ");
     print_hex(pubkey_serialized, pubkey_serialized_len);
 
     // Sign a message
@@ -94,10 +103,15 @@ int main() {
     }
 
     // Print the signature
-    printf("Signature: ");
+    printf("\nSignature: ");
     print_hex(signature, sizeof(signature));
 
-    pubkey_to_ethereum_address(pubkey_serialized + 1, 64);
+    char address[42]; // Ethereum address is 42 characters including '0x' prefix
+    pubkey_to_eth_addr(pubkey_serialized, 65, address);
+
+    
+    printf("\nAddress: ");
+    print_hex((const unsigned char *)address, 40);
 
     // Cleanup secp256k1 context
     secp256k1_context_destroy(ctx);
