@@ -17,9 +17,8 @@ char* sig_to_hex(uint8_t *r, uint8_t *s) {
 
     // Convert the sig array to a hexadecimal string
     char *sig_hex = NULL;
-    int status = eth_hex_from_bytes(&sig_hex, sig, 64);
 
-    if (status == -1) {
+    if (-1 == eth_hex_from_bytes(&sig_hex, sig, 64)) {
         fprintf(stderr, "Failed to convert raw sig to hex\n");
         return NULL;
     }
