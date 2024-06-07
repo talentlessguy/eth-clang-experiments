@@ -9,17 +9,13 @@ char* sig_to_hex(uint8_t *r, uint8_t *s) {
     uint8_t sig[64];
 
     // Copy r into the first 32 bytes of sig
-    for (int i = 0; i < 32; i++) {
-        sig[i] = r[i];
-    }
+    memcpy(sig, r, 32);
 
     // Copy s into the next 32 bytes of sig
-    for (int i = 0; i < 32; i++) {
-        sig[i + 32] = s[i];
-    }
+    memcpy(sig + 32, s, 32);
 
     // Convert the sig array to a hexadecimal string
-    char *sig_hex;
+    char *sig_hex = NULL;
     int status = eth_hex_from_bytes(&sig_hex, sig, 64);
 
     if (status == -1) {
@@ -57,7 +53,10 @@ int main() {
 
     char* sigHex = sig_to_hex(signature.r, signature.s);
 
-    printf("\n\nSignature: %s", (sigHex));
+    if (sigHex != NULL) {
+        printf("\n\nSignature: %s\n", sigHex);
+        free(sigHex);
+    }
     
     return 0;
 }
