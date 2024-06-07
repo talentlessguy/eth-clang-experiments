@@ -41,10 +41,10 @@ int main() {
     eth_hex_to_bytes(&privkey, hexstr, strlen(hexstr));
     eth_account_from_privkey(&acc, privkey);
 
-    char *addr[40];
-    eth_account_address_get(addr, &acc);
+    char addr[40];
+    eth_account_address_get(&addr, &acc);
 
-    printf("Address: %s", &addr);
+    printf("Address: %s", addr);
 
     struct eth_signed signature;
     char str[] = "Hello World"; // Example string
