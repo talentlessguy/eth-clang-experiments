@@ -3,6 +3,7 @@
 #include <ethc/account.h>
 #include <ethc/hex.h>
 #include <string.h>
+#include <ethc/keccak256.h>
 #include <sodium/crypto_hash_sha256.h>
 
 char* sig_to_hex(uint8_t *r, uint8_t *s) {
@@ -26,6 +27,13 @@ char* sig_to_hex(uint8_t *r, uint8_t *s) {
     return sig_hex;
 }
 
+void print_hex(const uint8_t *data, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        printf("%02x", data[i]);
+    }
+    printf("\n"); // Newline for better readability
+}
+
 int main() {
     // Example hex string
     const char *hexstr = getenv("PK"); // 0x9ef...
@@ -40,23 +48,30 @@ int main() {
     char addr[40];
     eth_account_address_get(&addr, &acc);
 
-    printf("Address: %s", addr);
+    printf("Address: 0x%s", addr);
 
     struct eth_signed signature;
     char str[] = "Hello World"; // Example string
-    uint8_t result;
+    uint8_t result = (uint8_t)atoi(str);
 
-    // Convert string to integer
-    result = (uint8_t)atoi(str);
+    // Compute keccak256 + prefix hash;
+    uint8_t keccak[32];
+    eth_keccak256p(keccak, &result, strlen(str));
 
-    eth_account_sign(&signature, &acc, &result, sizeof(result));
+    eth_account_sign(&signature, &acc, keccak, 32);
 
-    char* sigHex = sig_to_hex(signature.r, signature.s);
+    printf("\n\nSignature: ");
+    printf("\nr = 0x");
+    print_hex(signature.r, 32);
+    printf("s = 0x");
+    print_hex(signature.s, 32);
 
-    if (sigHex != NULL) {
-        printf("\n\nSignature: %s\n", sigHex);
-        free(sigHex);
-    }
+    // char* sigHex = sig_to_hex(signature.r, signature.s);
+
+    // if (sigHex != NULL) {
+    //     printf("\n\nSignature: %s\n", sigHex);
+    //     free(sigHex);
+    // }
     
     return 0;
 }
