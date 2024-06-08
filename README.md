@@ -30,3 +30,16 @@ $ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib clang src/sign.c -lethc
 Signature: 0xb81efa243127sda5...00
 Ethereum Address: 0xce9667fa..43c6
 ```
+
+### Resolve ENS
+
+Requirements: `libethc`
+
+Resolves given ENS name to an Ethereum address.
+
+```
+$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib clang src/ens.c -lethc
+
+ENS name: v1rtl.eth
+Ethereum Address: 0xce9667fa..43c6
+```
