@@ -2,7 +2,8 @@
 
 ## Setup
 
-Install [Foundry](https://getfoundry.sh).
+Install [Foundry](https://getfoundry.sh). Clang frontend is recommended,
+version 17.
 
 ## Experiments
 
