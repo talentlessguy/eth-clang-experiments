@@ -94,16 +94,19 @@ int main()
     char *hash = namehash(name);
     printf("namehash: 0x%s\n", hash);
 
+    uint8_t *hash_bytes = NULL;
+    eth_hex_to_bytes(&hash_bytes, hash, strlen(hash));
+
     struct eth_abi abi;
     char *fn = "addr(bytes32)", *hex;
     eth_abi_init(&abi, ETH_ABI_ENCODE);
-    eth_abi_call(&abi, &fn, NULL); // balanceOf(
-    eth_abi_bytes32(&abi, &hash);  //   0x6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
-    eth_abi_call_end(&abi);        // )
+    eth_abi_call(&abi, &fn, NULL);     // addr(
+    eth_abi_bytes32(&abi, hash_bytes); //   0x6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
+    eth_abi_call_end(&abi);            // )
 
     eth_abi_to_hex(&abi, &hex, &hexlen);
     eth_abi_free(&abi);
-    printf("encoded abi: %s\n", hex); // 3b3b57dee0920cc7aa5a000000000000000000000051f908b2afa579f053c63afe7f0000 abi: 70a08231000000000000000000000000876d477bd5cd050e6162cf757e1bc02d93cdc0fe
+    printf("encoded abi: 0x%s\n", hex); // 3b3b57dee0920cc7aa5a000000000000000000000051f908b2afa579f053c63afe7f0000 abi: 70a08231000000000000000000000000876d477bd5cd050e6162cf757e1bc02d93cdc0fe
     free(hex);
     return 0;
 }
