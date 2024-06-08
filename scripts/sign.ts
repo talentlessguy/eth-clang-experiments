@@ -1,5 +1,5 @@
 import { privateKeyToAccount, sign } from 'https://esm.sh/viem@2.13.3/accounts'
-import { type Hex, hashMessage } from 'https://esm.sh/viem@2.13.3'
+import { type Hex, hashMessage, serializeSignature } from 'https://esm.sh/viem@2.13.3'
 
 const pk = Deno.env.get('PK') as Hex
 
@@ -11,4 +11,8 @@ const hash = hashMessage('Hello World')
 
 const signature = await sign({ hash, privateKey: pk })
 
-console.log(`\nSignature:\nr = ${signature.r}\ns = ${signature.s}\nv = ${signature.v}`)
+console.log(`\nr = ${signature.r}\ns = ${signature.s}\n`)
+
+const hex = serializeSignature(signature)
+
+console.log(`Signature: ${hex}`)
