@@ -3,8 +3,6 @@
 #include <ethc/account.h>
 #include <ethc/hex.h>
 #include <string.h>
-#include <ethc/keccak256.h>
-#include <sodium/crypto_hash_sha256.h>
 
 char* sig_to_hex(uint8_t *r, uint8_t *s) {
     uint8_t sig[64];
@@ -24,13 +22,6 @@ char* sig_to_hex(uint8_t *r, uint8_t *s) {
     }
 
     return sig_hex;
-}
-
-void print_hex(const uint8_t *data, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        printf("%02x", data[i]);
-    }
-    printf("\n"); // Newline for better readability
 }
 
 int main() {
@@ -53,17 +44,17 @@ int main() {
     char str[] = "Hello World"; // Example string
     uint8_t result = (uint8_t)atoi(str);
 
-    // Compute keccak256 + prefix hash;
-    uint8_t keccak[32];
-    eth_keccak256p(keccak, &result, strlen(str));
-
-    eth_account_sign(&signature, &acc, keccak, 32);
+    eth_account_sign(&signature, &acc, str, strlen(str));
 
     printf("\n\nSignature: ");
     printf("\nr = 0x");
-    print_hex(signature.r, 32);
-    printf("s = 0x");
-    print_hex(signature.s, 32);
+    char *r;
+    eth_hex_from_bytes(&r, signature.r, 32);
+    printf(r);
+    printf("\ns = 0x");
+    char *s;
+    eth_hex_from_bytes(&s, signature.s, 32);
+    printf(s);
 
     // char* sigHex = sig_to_hex(signature.r, signature.s);
 
