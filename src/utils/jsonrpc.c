@@ -4,18 +4,21 @@
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
 
-struct Memory {
+struct Memory
+{
     char *response;
     size_t size;
 };
 
 // Callback function to handle the response
-size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
+{
     size_t realsize = size * nmemb;
     struct Memory *mem = (struct Memory *)userp;
 
     char *ptr = realloc(mem->response, mem->size + realsize + 1);
-    if(ptr == NULL) {
+    if (ptr == NULL)
+    {
         fprintf(stderr, "Not enough memory to allocate buffer.\n");
         return 0;
     }
@@ -28,25 +31,34 @@ size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     return realsize;
 }
 
-int main(void) {
+// Function to send JSON-RPC request
+char *send_json_rpc_request(const char *url, const char *method, cJSON *params)
+{
     CURL *curl;
     CURLcode res;
-
     struct Memory chunk = {0};
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
-    if(curl) {
-        const char *url = "http://localhost:8545";
-
-        // Create JSON-RPC request using cJSON
+    if (curl)
+    {
         cJSON *json_rpc_request = cJSON_CreateObject();
-        cJSON_AddStringToObject(json_rpc_request, "jsonrpc", "2.0");
-        cJSON_AddStringToObject(json_rpc_request, "method", "eth_chainId");
-        cJSON_AddItemToObject(json_rpc_request, "params", cJSON_CreateArray());
+        cJSON_AddStringToObject(json_rpc_request, "jsonrpc", "2.0"); // Automatically add "jsonrpc" key
+        cJSON_AddStringToObject(json_rpc_request, "method", method);
+
+        if (params)
+        {
+            cJSON_AddItemToObject(json_rpc_request, "params", params);
+        }
+        else
+        {
+            cJSON_AddItemToObject(json_rpc_request, "params", cJSON_CreateArray());
+        }
+
         cJSON_AddNumberToObject(json_rpc_request, "id", 1);
 
         char *json_rpc_data = cJSON_PrintUnformatted(json_rpc_request);
+        cJSON_Delete(json_rpc_request);
 
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -59,21 +71,18 @@ int main(void) {
 
         res = curl_easy_perform(curl);
 
-        if(res != CURLE_OK) {
+        if (res != CURLE_OK)
+        {
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        } else {
-            printf("Response: %s\n", chunk.response);
         }
 
         // Clean up
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
-        free(chunk.response);
-        cJSON_Delete(json_rpc_request);
         free(json_rpc_data);
     }
 
     curl_global_cleanup();
 
-    return 0;
+    return chunk.response;
 }

@@ -14,7 +14,7 @@ Requirements: `libcurl`, `cjson`
 Makes an HTTP request to an Anvil node to obtain chain ID.
 
 ```sh
-clang src/jsonrpc.c -lcurl -lcjson
+clang src/utils/jsonrpc.c src/chain_id.c -lcurl -lcjson
 ```
 
 ### Sign a message
@@ -33,13 +33,17 @@ Ethereum Address: 0xce9667fa..43c6
 
 ### Resolve ENS
 
-Requirements: `libethc`
+Requirements: `libethc`, `libcurl`, `cjson`
 
 Resolves given ENS name to an Ethereum address.
 
 ```
-$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib clang src/ens.c -lethc
+$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib clang src/utils/jsonrpc.c src/ens.c -lcurl -lcjson -lethc
 
 ENS name: v1rtl.eth
-Ethereum Address: 0xce9667fa..43c6
+namehash: 0x6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
+Encoded ABI: 0x3b3b57de6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
+Response: {"jsonrpc":"2.0","id":1,"result":"0x000000000000000000000000d3b282e9880cdcb1142830731cd83f7ac0e1043f"}
+
+Address: d3b282e9880cdcb1142830731cd83f7ac0e1043f
 ```

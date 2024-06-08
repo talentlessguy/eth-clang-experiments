@@ -3,6 +3,9 @@
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "files.associations": {
-        "keccak256.h": "c"
+        "keccak256.h": "c",
+        "string.h": "c",
+        "jsonrpc.h": "c",
+        "sstream": "c"
     }
 }

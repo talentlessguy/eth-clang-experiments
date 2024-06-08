@@ -4,6 +4,7 @@
 #include <ethc/keccak256.h>
 #include <ethc/hex.h>
 #include <ethc/abi.h>
+#include "./utils/jsonrpc.h"
 
 char *labelhash(const char *label)
 {
@@ -91,7 +92,13 @@ int main()
 {
     size_t hexlen;
     const char *name = "v1rtl.eth";
+    printf("ENS name: %s\n", name);
     char *hash = namehash(name);
+    if (!hash)
+    {
+        fprintf(stderr, "Error computing name hash!\n");
+        return 1;
+    }
     printf("namehash: 0x%s\n", hash);
 
     uint8_t *hash_bytes = NULL;
@@ -106,7 +113,52 @@ int main()
 
     eth_abi_to_hex(&abi, &hex, &hexlen);
     eth_abi_free(&abi);
-    printf("encoded abi: 0x%s\n", hex); // 3b3b57dee0920cc7aa5a000000000000000000000051f908b2afa579f053c63afe7f0000 abi: 70a08231000000000000000000000000876d477bd5cd050e6162cf757e1bc02d93cdc0fe
-    free(hex);
+    printf("Encoded ABI: 0x%s\n", hex); // 3b3b57dee0920cc7aa5a000000000000000000000051f908b2afa579f053c63afe7f0000 abi: 70a08231000000000000000000000000876d477bd5cd050e6162cf757e1bc02d93cdc0fe
+
+    char hexWith0x[256];
+    sprintf(hexWith0x, "0x%s", hex);
+
+    const char *url = "https://rpc.payload.de";
+
+    cJSON *params_array = cJSON_CreateArray();
+    cJSON *params_object = cJSON_CreateObject();
+    cJSON_AddStringToObject(params_object, "to", "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63");
+    cJSON_AddStringToObject(params_object, "data", hexWith0x);
+    cJSON_AddItemToArray(params_array, params_object);
+
+    char *response = send_json_rpc_request(url, "eth_call", params_array);
+    if (response)
+    {
+        printf("Response: %s\n", response);
+
+        cJSON *root = cJSON_Parse(response);
+        if (root == NULL)
+        {
+            printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+            return 1;
+        }
+
+        // Get values from the JSON object
+        cJSON *jsonrpc = cJSON_GetObjectItem(root, "jsonrpc");
+        cJSON *id = cJSON_GetObjectItem(root, "id");
+        cJSON *result = cJSON_GetObjectItem(root, "result");
+
+        // Trim leading zeros after "0x" in the result field
+        const char *trimmed_result = result->valuestring;
+        if (strncmp(trimmed_result, "0x", 2) == 0)
+        {
+            trimmed_result += 2; // Move the pointer past "0x"
+            while (*trimmed_result == '0')
+            {
+                trimmed_result++; // Skip leading zeros
+            }
+        }
+
+        printf("Address: %s\n", trimmed_result);
+
+        // Free memory
+        cJSON_Delete(root);
+    }
+
     return 0;
 }
