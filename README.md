@@ -2,8 +2,7 @@
 
 ## Setup
 
-Install [Foundry](https://getfoundry.sh). Clang frontend is recommended,
-version 17.
+GCC/clang 17+ is recommended.
 
 ## Experiments
 
@@ -11,7 +10,7 @@ version 17.
 
 Requirements: `libcurl`, `json-glib`, `glib`
 
-Makes an HTTP request to an Anvil node to obtain chain ID.
+Makes an HTTP request to an Ethereum node to obtain chain ID.
 
 ```sh
 gcc src/chain_id.c src/utils/jsonrpc.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl
