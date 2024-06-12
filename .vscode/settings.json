@@ -1,8 +1,5 @@
 {
     "deno.enable": true,
     "editor.formatOnSave": true,
-    "editor.tabSize": 4,
-    "files.associations": {
-        "json-glib.h": "c"
-    }
+    "editor.tabSize": 4
 }
