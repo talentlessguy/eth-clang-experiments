@@ -1,17 +1,18 @@
+#include <json-glib/json-glib.h>
+#include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <curl/curl.h>
-#include <cjson/cJSON.h>
 
+// Struct to store response data
 struct Memory
 {
     char *response;
     size_t size;
 };
 
-// Callback function to handle the response
-size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
+// Callback function to write response data
+static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
     struct Memory *mem = (struct Memory *)userp;
@@ -19,7 +20,8 @@ size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
     char *ptr = realloc(mem->response, mem->size + realsize + 1);
     if (ptr == NULL)
     {
-        fprintf(stderr, "Not enough memory to allocate buffer.\n");
+        // out of memory!
+        printf("not enough memory (realloc returned NULL)\n");
         return 0;
     }
 
@@ -32,7 +34,7 @@ size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 }
 
 // Function to send JSON-RPC request
-char *send_json_rpc_request(const char *url, const char *method, cJSON *params)
+char *send_json_rpc_request(const char *url, const char *method, JsonNode *params)
 {
     CURL *curl;
     CURLcode res;
@@ -42,23 +44,41 @@ char *send_json_rpc_request(const char *url, const char *method, cJSON *params)
     curl = curl_easy_init();
     if (curl)
     {
-        cJSON *json_rpc_request = cJSON_CreateObject();
-        cJSON_AddStringToObject(json_rpc_request, "jsonrpc", "2.0"); // Automatically add "jsonrpc" key
-        cJSON_AddStringToObject(json_rpc_request, "method", method);
+        // Create a JSON object for the JSON-RPC request
+        JsonBuilder *builder = json_builder_new();
+        json_builder_begin_object(builder);
+        json_builder_set_member_name(builder, "jsonrpc");
+        json_builder_add_string_value(builder, "2.0");
+        json_builder_set_member_name(builder, "method");
+        json_builder_add_string_value(builder, method);
+        json_builder_set_member_name(builder, "params");
 
         if (params)
         {
-            cJSON_AddItemToObject(json_rpc_request, "params", params);
+            json_builder_add_value(builder, params);
         }
         else
         {
-            cJSON_AddItemToObject(json_rpc_request, "params", cJSON_CreateArray());
+            JsonBuilder *array_builder = json_builder_new();
+            json_builder_begin_array(array_builder);
+            json_builder_end_array(array_builder);
+            JsonNode *empty_array = json_builder_get_root(array_builder);
+            json_builder_add_value(builder, empty_array);
+            g_object_unref(array_builder);
         }
 
-        cJSON_AddNumberToObject(json_rpc_request, "id", 1);
+        json_builder_set_member_name(builder, "id");
+        json_builder_add_int_value(builder, 1);
+        json_builder_end_object(builder);
 
-        char *json_rpc_data = cJSON_PrintUnformatted(json_rpc_request);
-        cJSON_Delete(json_rpc_request);
+        JsonGenerator *generator = json_generator_new();
+        JsonNode *root = json_builder_get_root(builder);
+        json_generator_set_root(generator, root);
+        gchar *json_rpc_data = json_generator_to_data(generator, NULL);
+
+        g_object_unref(generator);
+        g_object_unref(builder);
+        json_node_free(root);
 
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -79,7 +99,7 @@ char *send_json_rpc_request(const char *url, const char *method, cJSON *params)
         // Clean up
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
-        free(json_rpc_data);
+        g_free(json_rpc_data);
     }
 
     curl_global_cleanup();

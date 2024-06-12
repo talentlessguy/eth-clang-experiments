@@ -9,12 +9,12 @@ version 17.
 
 ### JSONRPC request
 
-Requirements: `libcurl`, `cjson`
+Requirements: `libcurl`, `json-glib`, `glib`
 
 Makes an HTTP request to an Anvil node to obtain chain ID.
 
 ```sh
-clang src/utils/jsonrpc.c src/chain_id.c -lcurl -lcjson
+gcc src/chain_id.c src/utils/jsonrpc.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl
 ```
 
 ### Sign a message
@@ -33,12 +33,12 @@ Ethereum Address: 0xce9667fa..43c6
 
 ### Resolve ENS
 
-Requirements: `libethc`, `libcurl`, `cjson`
+Requirements: `libethc`, `libcurl`, `json-glib`, `glib`
 
 Resolves given ENS name to an Ethereum address.
 
 ```
-$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib clang src/utils/jsonrpc.c src/ens.c -lcurl -lcjson -lethc
+$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib gcc src/ens.c src/utils/jsonrpc.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl -lethc
 
 ENS name: v1rtl.eth
 namehash: 0x6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9

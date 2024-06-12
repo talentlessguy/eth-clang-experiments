@@ -6,6 +6,14 @@
 #include <ethc/abi.h>
 #include "./utils/jsonrpc.h"
 
+JsonObject *create_params_object(const gchar *to, const gchar *data)
+{
+    JsonObject *params_object = json_object_new();
+    json_object_set_string_member(params_object, "to", to);
+    json_object_set_string_member(params_object, "data", data);
+    return params_object;
+}
+
 char *labelhash(const char *label)
 {
     uint8_t result[32] = {0};
@@ -118,46 +126,47 @@ int main()
     char hexWith0x[256];
     sprintf(hexWith0x, "0x%s", hex);
 
-    const char *url = "https://rpc.payload.de";
+    const char *url = "http://127.0.0.1:8545";
 
-    cJSON *params_array = cJSON_CreateArray();
-    cJSON *params_object = cJSON_CreateObject();
-    cJSON_AddStringToObject(params_object, "to", "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63");
-    cJSON_AddStringToObject(params_object, "data", hexWith0x);
-    cJSON_AddItemToArray(params_array, params_object);
+    JsonBuilder *builder = json_builder_new();
+    json_builder_begin_array(builder);
+    json_builder_begin_object(builder);
+    json_builder_set_member_name(builder, "to");
+    json_builder_add_string_value(builder, "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63");
+    json_builder_set_member_name(builder, "data");
+    json_builder_add_string_value(builder, hexWith0x);
+    json_builder_end_object(builder);
+    json_builder_end_array(builder);
+    JsonNode *params = json_builder_get_root(builder);
 
-    char *response = send_json_rpc_request(url, "eth_call", params_array);
-    if (response)
+    // Call send_json_rpc_request
+    char *response = send_json_rpc_request(url, "eth_call", params);
+
+    // Parse response JSON
+    JsonParser *parser = json_parser_new();
+    json_parser_load_from_data(parser, response, -1, NULL);
+    JsonObject *root = json_node_get_object(json_parser_get_root(parser));
+
+    if (json_object_has_member(root, "result"))
     {
-        printf("Response: %s\n", response);
-
-        cJSON *root = cJSON_Parse(response);
-        if (root == NULL)
+        JsonNode *result_node = json_object_get_member(root, "result");
+        if (JSON_NODE_HOLDS_VALUE(result_node))
         {
-            printf("Error before: [%s]\n", cJSON_GetErrorPtr());
-            return 1;
-        }
-
-        // Get values from the JSON object
-        cJSON *jsonrpc = cJSON_GetObjectItem(root, "jsonrpc");
-        cJSON *id = cJSON_GetObjectItem(root, "id");
-        cJSON *result = cJSON_GetObjectItem(root, "result");
-
-        // Trim leading zeros after "0x" in the result field
-        const char *trimmed_result = result->valuestring;
-        if (strncmp(trimmed_result, "0x", 2) == 0)
-        {
-            trimmed_result += 2; // Move the pointer past "0x"
-            while (*trimmed_result == '0')
+            const gchar *result = json_node_get_string(result_node);
+            if (strncmp(result, "0x", 2) == 0)
             {
-                trimmed_result++; // Skip leading zeros
+                result += 2; // Move the pointer past "0x"
+                while (*result == '0')
+                {
+                    result++; // Skip leading zeros
+                }
             }
+            printf("Address: 0x%s\n", result);
         }
-
-        printf("Address: %s\n", trimmed_result);
-
-        // Free memory
-        cJSON_Delete(root);
+    }
+    else
+    {
+        printf("\nNo result found in the JSON response.\n");
     }
 
     return 0;
