@@ -37,7 +37,8 @@ Requirements: `libethc`, `libcurl`, `json-glib`, `glib`
 Resolves given ENS name to an Ethereum address.
 
 ```
-$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib gcc src/ens.c src/utils/jsonrpc.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl -lethc
+$ LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib gcc src/ens-addr.c src/utils/*.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2
+.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl -lethc
 
 ENS name: v1rtl.eth
 namehash: 0x6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
