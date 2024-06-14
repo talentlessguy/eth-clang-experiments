@@ -1,5 +1,9 @@
 import { privateKeyToAccount, sign } from 'https://esm.sh/viem@2.13.3/accounts'
-import { type Hex, hashMessage, serializeSignature } from 'https://esm.sh/viem@2.13.3'
+import {
+  hashMessage,
+  type Hex,
+  serializeSignature,
+} from 'https://esm.sh/viem@2.13.3'
 
 const pk = Deno.env.get('PK') as Hex
 
