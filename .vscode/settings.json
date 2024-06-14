@@ -1,5 +1,11 @@
 {
     "deno.enable": true,
     "editor.formatOnSave": true,
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "files.associations": {
+        "ens.h": "c",
+        "jsonrpc.h": "c",
+        "abi.h": "c",
+        "stdint.h": "c"
+    }
 }
