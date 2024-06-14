@@ -7,18 +7,57 @@
 #include "./utils/jsonrpc.h"
 #include "./utils/ens.h"
 
+char *decode_content_hash(const char *contentHash)
+{
+    const char *ipfsHash = contentHash + 4; // Skip the first 4 characters
+
+    int ipfsHashLength = strlen(ipfsHash);
+    uint8_t *bytes;
+
+    // Convert hex string to bytes
+    eth_hex_to_bytes(&bytes, ipfsHash, ipfsHashLength);
+
+    const char *alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+    int byteArrayLength = ipfsHashLength / 2;
+    char *output = (char *)malloc(byteArrayLength * 8 / 5 + 1); // Allocate enough space for base32
+    int outputIndex = 0;
+    int bits = 0;
+    int value = 0;
+
+    for (int i = 0; i < byteArrayLength; i++)
+    {
+        value = (value << 8) | bytes[i];
+        bits += 8;
+
+        while (bits >= 5)
+        {
+            output[outputIndex++] = alphabet[(value >> (bits - 5)) & 31];
+            bits -= 5;
+        }
+    }
+
+    if (bits > 0)
+    {
+        output[outputIndex++] = alphabet[(value << (5 - bits)) & 31];
+    }
+
+    output[outputIndex] = '\0'; // Null-terminate the string
+
+    free(bytes);
+    return output;
+}
+
 int main()
 {
     size_t hexlen;
     const char *name = "v1rtl.eth";
-    printf("ENS name: %s\n", name);
+    printf("ENS name:     %s\n", name);
     char *hash = namehash(name);
     if (!hash)
     {
         fprintf(stderr, "Error computing name hash!\n");
         return 1;
     }
-    printf("namehash: 0x%s\n", hash);
 
     uint8_t *hash_bytes = NULL;
     eth_hex_to_bytes(&hash_bytes, hash, strlen(hash));
@@ -32,7 +71,6 @@ int main()
 
     eth_abi_to_hex(&abi, &hex, &hexlen);
     eth_abi_free(&abi);
-    printf("Encoded ABI: 0x%s\n", hex); // 0x3b3b57de6dd56164f699a101d6063add452dfed7c6c09fe17b8e4acf3328f9387f5030b9
 
     char hexWith0x[256];
     sprintf(hexWith0x, "0x%s", hex);
@@ -64,15 +102,30 @@ int main()
         if (JSON_NODE_HOLDS_VALUE(result_node))
         {
             const gchar *result = json_node_get_string(result_node);
-            if (strncmp(result, "0x", 2) == 0)
+
+            // Remove the "0x" prefix and the leading 64-character prefix
+            const gchar *sanitized_result = result + 130; // Skip "0x" + 64 characters
+
+            // Create a modifiable copy of the sanitized result
+            gchar *result_copy = g_strdup(sanitized_result);
+
+            // Remove trailing zeros
+            int len = strlen(result_copy);
+            while (len > 0 && result_copy[len - 1] == '0')
             {
-                result += 2; // Move the pointer past "0x"
-                while (*result == '0')
-                {
-                    result++; // Skip leading zeros
-                }
+                len--;
             }
-            printf("Address: 0x%s\n", result);
+            result_copy[len] = '\0'; // Terminate string after last non-zero character
+
+            printf("Content-Hash: 0x%s\n", result_copy);
+
+            char *ipfs_hash = decode_content_hash(result_copy);
+
+            printf("IPFS Hash:    b%s\n", ipfs_hash);
+
+            // Free the allocated copy
+            g_free(result_copy);
+            free(ipfs_hash);
         }
     }
     else

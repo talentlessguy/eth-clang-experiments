@@ -46,3 +46,15 @@ Response: {"jsonrpc":"2.0","id":1,"result":"0x000000000000000000000000d3b282e988
 
 Address: d3b282e9880cdcb1142830731cd83f7ac0e1043f
 ```
+
+### Content-Hash
+
+Requirements: `libethc`, `libcurl`, `json-glib`, `glib`
+
+```
+LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib gcc src/content-hash.c src/utils/*.c -I/usr/include/json-glib-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -ljson-glib-1.0 -lgobject-2.0 -lglib-2.0 -lcurl -lethc
+
+ENS name:     v1rtl.eth
+Content-Hash: 0xe30101701220846a8475d7d2ee4178ea696d2f3a15075b1e57729abbfa72f01c5caf24668eec
+IPFS Hash:    bafybeieenkchlv6s5zaxr2tjnuxtufihlmpfo4u2xp5hf4a4lsxsizuo5q
+```
